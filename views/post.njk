@@ -1,0 +1,50 @@
+{% extends "layouts/main.njk" %}
+{% block content %}
+<div class="container-fullwidth text-center posts-container">
+    <div class="post py-3 px-2 mb-2" id="{{post._id}}">
+        {% if post.title %}
+            <h5>{{ post.title }}</h5>
+        {% endif %}
+        {% if post.imagename %}
+            <img src="/getimage/{{post.imagename}}"  class="post-image">
+        {% endif %}
+        <p>
+            {{post.content}}
+        </p>
+        <small>
+            posted by
+            {{post.user}}
+        </small>
+        <div class="row mb-2">
+            <div class="col-12 col-sm-6 col-xl-3 offset-xl-3 mb-2 mb-sm-0">
+                <span class="badge badge-pill badge-light">Comments:
+                    {{post.commentcount}}</span>
+                <span class="badge badge-pill badge-light id2dt">{{post._id}}</span>
+            </div>
+            <div class="col-12 col-sm-3 offset-sm-2 col-xl-2 offset-xl-1">
+                <button class="btn btn-light comment-btn btn-block" onclick="addcomment(event,'{{post._id}}', '{{section}}')" type="button">Add Comment</button>
+            </div>
+        </div>
+    </div>
+    <div class="comment-titles">
+        <h3>Comments</h3>
+
+    </div>
+    {% for comment in post.comments %}
+        <div class="comments-container">
+            <div class="comment py-4 mx-2 rounded-top row {{ " focuscomment" if comment._id == comid}}">
+                <div class="col-12 comment-content">{{comment.content}}</div>
+                <div class="col-12">
+                    <small class="text-center">-
+                        {{comment.user}}</small>
+                </div>
+            </div>
+            <div class="comment-footer mb-2 py-2 rounded-bottom mx-2 row">
+                <div class="col-12 col-md-6 offset-md-6">
+                    <span class="badge badge-pill badge-light id2dt">{{comment._id}}</span>
+                    <span class="badge badge-pill badge-dark">{{comment._id}}</span>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>{% endblock %}

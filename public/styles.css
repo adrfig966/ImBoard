@@ -1,0 +1,32 @@
+body{ 
+    text-align: center;
+    background-color: rgb(37, 39, 37);
+}
+body > .container-fullwidth{
+    color: white;
+    overflow:hidden;
+}
+.modal{
+    color: black;
+}
+.post{
+    background-color: #70443d;
+}
+.comment{
+    background-color: #a06868;
+}
+.comment-content a{
+    color: white;
+    font-weight: 600;
+    font-style: italic;
+}
+.comment-footer{
+    background-color: #583741
+}
+.focuscomment{
+    background-color: #93718a; 
+}
+.post-image{
+    max-height: 500px;
+    max-width: 80%;
+}
