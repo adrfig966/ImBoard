@@ -11,7 +11,7 @@ Fileupload set up, uses Multer
 var dstorage = multer.diskStorage({
   destination: path.join(__dirname, "../uploads"),
   //Generate file name based on post section, format is: {section}-{ms since epoch}.{original extension}
-  filename: function(req, file, cb) {
+  filename: function (req, file, cb) {
     var splitname = file.originalname.split(".");
     cb(
       null,
@@ -21,14 +21,14 @@ var dstorage = multer.diskStorage({
         "." +
         splitname[splitname.length - 1]
     );
-  }
+  },
 });
 
 //Generating middleware for handling 'postpicture' file input field
 var uploadmw = multer({
   storage: dstorage,
   limits: { fileSize: 1048576, files: 1 },
-  fileFilter: function(req, file, cb) {
+  fileFilter: function (req, file, cb) {
     var allowtypes = ["jpg", "png", "gif", "bmp"];
     var splitname = file.originalname.split(".");
     var ext = splitname[splitname.length - 1];
@@ -36,7 +36,7 @@ var uploadmw = multer({
       return cb(null, true);
     }
     return cb(null, false);
-  }
+  },
 }).single("postpicture");
 
 /**************
@@ -65,7 +65,7 @@ Response: New post if successful (200), else error object (400)
 router.post("/newpost", uploadmw, (req, res) => {
   var postdata = {
     content: req.body.content,
-    section: req.body.section
+    section: req.body.section,
   };
   //Using FormData objects on front end prevents middleware fix from working, this is a quickfix for empty values.
   if (req.body.user) {
@@ -100,13 +100,58 @@ router.post("/addcomment", (req, res) => {
     { _id: req.body.id },
     {
       $push: {
-        comments: { user: req.body.user, content: req.body.content }
+        comments: { user: req.body.user, content: req.body.content },
       },
-      $inc: { commentcount: 1 }
+      $inc: { commentcount: 1 },
+      $set: {
+        lastcomment: Date.now(),
+      },
     },
     { runValidators: true, new: true },
     (err, post) => {
       if (err) return res.status(400).send(err);
+      res.status(200).send(post);
+    }
+  );
+});
+
+/**************
+Description: Adds a like to the given post using post id
+Method: POST
+Body: ID (string)
+Response: Updated post if successful (200), else error object (400)
+***************/
+router.post("/addvote", (req, res) => {
+  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log("User IP: " + ip);
+  Post.findOneAndUpdate(
+    {
+      _id: req.body.id,
+      likes: {
+        "$not": {
+          "$elemMatch": {
+            ip: ip
+          }
+        }
+      },
+      dislikes: {
+        "$not": {
+          "$elemMatch": {
+            ip: ip
+          }
+        }
+      }
+    },
+    {
+      $addToSet: {
+        likes: { ip: ip },
+      },
+    },
+    { runValidators: true, new: true },
+    (err, post) => {
+      if (err) return res.status(400).send(err);
+      console.log(post);
+      if(!post) return res.status(200).send("You already liked this post.");
       res.status(200).send(post);
     }
   );
@@ -121,7 +166,7 @@ Response: Image file if successful
 router.get("/getimage/:filename", (req, res) => {
   res.sendFile(req.params.filename, {
     root: path.join(__dirname, "../uploads"),
-    dotfiles: "deny"
+    dotfiles: "deny",
   });
 });
 
@@ -133,7 +178,10 @@ Response: Posts for section as JSON if success (200), else error object (400)
 ***************/
 router.get("/getposts", (req, res) => {
   Post.find({ section: req.query.section })
-    .sort([["commentcount", -1], ["_id", -1]])
+    .sort([
+      ["commentcount", -1],
+      ["_id", -1],
+    ])
     .exec((err, posts) => {
       if (err) return res.status(400).send(err);
       res.status(200).send(posts);
@@ -150,6 +198,20 @@ router.get("/getpost", (req, res) => {
   Post.find({ _id: req.query.id }, (err, posts) => {
     if (err) return res.status(400).send(err);
     res.status(200).send(posts);
+  });
+});
+
+/**************
+Description: Gets edgerank score for a given section
+Method: GET
+Query Params: Section (string)
+Response: Single post for given ID as JSON if success (200), else error object (400)
+***************/
+router.get("/edgerank", (req, res) => {
+  Post.sectionEdgeRank(req.query.section || "testing", (rankerr, result) => {
+    if (rankerr) return res.status(400).send(rankerr);
+    res.header("Content-Type",'application/json');
+    res.status(200).send(result);
   });
 });
 

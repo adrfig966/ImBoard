@@ -1,15 +1,16 @@
-body{ 
+body{
     text-align: center;
     background-color: rgb(37, 39, 37);
 }
-body > .container-fullwidth{
+body > .container {
     color: white;
     overflow:hidden;
 }
 .modal{
     color: black;
 }
-.post{
+.post,
+.footer__inner{
     background-color: #70443d;
 }
 .comment{
@@ -24,7 +25,7 @@ body > .container-fullwidth{
     background-color: #583741
 }
 .focuscomment{
-    background-color: #93718a; 
+    background-color: #93718a;
 }
 .post-image{
     max-height: 500px;

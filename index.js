@@ -20,7 +20,7 @@ Server & DB configuration
 mongoose.connect(
   require("./connectionstr"),
   { useNewUrlParser: true },
-  err => {
+  (err) => {
     if (err) console.log(err);
   }
 );
@@ -29,13 +29,17 @@ mongoose.set("useFindAndModify", false);
 //Setting nunjucks as view engine
 nunjucks.configure("views", {
   autoescape: true, //Escape HTML automatically
-  express: app
+  express: app,
 });
 
 //Allows omitting of .njk extension for view rendering
 app.set("view engine", "njk");
 
-
+// Allow forwarded-for headers - Make sure to set proper NGINX configuration
+/*
+proxy_set_header  X-Real-IP  $remote_addr;
+*/
+app.set('trust proxy', true)
 /**************
 Middleware
 ***************/
@@ -59,7 +63,7 @@ app.post("/test", (req, res) => {
 });
 
 /**************
-***************/
+ ***************/
 app.listen(3000, () => {
   console.log("Listenin on port 3k boss");
 });

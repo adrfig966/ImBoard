@@ -1,0 +1,33 @@
+<div class="modal" tabindex="-1" role="dialog" id="newpostmodal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Post</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Enter your information below and hit Create to create your post</p>
+                <form class="postform" enctype="multipart/form-data" onsubmit="postsubmit(event,'{{section}}')" postsection={{section}}>
+                    <label for="postuser" class="text-info">User name (optional)</label>
+                    <input type="text" class="form-control" name="user" id="postuser" maxlength="25" pattern="[A-Za-z0-9_]{0,25}">
+                    <small class="text-success" id="postulength">0/25</small><br>
+                    <label for="postcontent" class="text-info">Post body</label>
+                    <textarea class="form-control" name="content" id="postcontent" required></textarea>
+                    <small class="text-danger" id="postlength">0/250</small><br>
+                    <label for="pictureupload">Select image (1mb max)</label><br>
+                    <input name="postpicture" type="file" class="" id="pictureupload" accept=".jpg,.png,.gif,.bmp"><br>
+                    <div class="progress mt-4">
+                        <div class="progress-bar bg-success fsize-bar" role="progressbar" style="width: 0%; color: black">File size</div>
+                    </div>
+                    <input type="submit" class="btn btn-primary mt-2" value="Create">
+                </form>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -37,11 +37,24 @@ router.get(
   (req, res) => {
     Post.find({ _id: req.params.id }, (err, posts) => {
       if (err) return res.status(400).send(err);
+
+      Post.findOneAndUpdate(
+        { _id: posts[0]._id },
+        {
+          $inc: { views: 1 },
+        },
+        { runValidators: true, new: true },
+        (err, post) => {
+          if (err) return console.log(err);
+          console.log(post);
+        }
+      );
+
       //comid is propagated to allow highlighting of comments
       res.status(200).render("post", {
         post: posts[0],
-        section: req.params.section, 
-        comid: req.query.comid 
+        section: req.params.section,
+        comid: req.query.comid
       });
     });
   }

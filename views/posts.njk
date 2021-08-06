@@ -1,13 +1,14 @@
 {% extends "layouts/main.njk" %}
 {% block content %}
-<div class="container-fullwidth text-center posts-container">
+<div class="container text-center posts-container">
     {% for post in postarr %}
         <div class="post py-3 px-2 mb-2" id="{{post._id}}">
             {% if post.title %}
                 <h5>{{ post.title }}</h5>
             {% endif %}
+
             {% if post.imagename %}
-                <img src="/getimage/{{post.imagename}}" class="post-image">
+                <img src="/getimage/{{post.imagename}}" class="post-image d-block mx-auto">
             {% endif %}
             <p>
                 {{post.content | truncate(100)}}
@@ -17,15 +18,19 @@
                 {{post.user}}
             </small>
             <div class="row my-2">
-                <div class="col-12 col-sm-6 col-xl-3 offset-xl-3 mb-2 mb-sm-0">
+                <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center justify-content-center">
                     <span class="badge badge-pill badge-light">Comments:
                         {{post.commentcount}}</span>
                     <span class="badge badge-pill badge-light id2dt">{{post._id}}</span>
                 </div>
-                <div class="col-12 col-sm-6 col-xl-3">
-                    <button class="btn btn-light mb-sm-2 mb-md-0" onclick="gotopost(event,'{{post._id}}', '{{section}}')" type="button">View Post</button>
+                <div class="col-12 col-md-6">
+                    <button class="btn btn-light" onclick="gotopost(event,'{{post._id}}', '{{section}}')" type="button">View Post</button>
                     <button class="btn btn-light comment-btn" onclick="addcomment(event,'{{post._id}}', '{{section}}')" type="button">Add Comment</button>
                 </div>
+            </div>
+            <div class="btn-group mb-2" role="group" aria-label="Vote buttons">
+              <button type="button" class="btn btn-primary">Like</button>
+              <button type="button" class="btn btn-secondary">Dislike</button>
             </div>
         </div>
     {% endfor %}
