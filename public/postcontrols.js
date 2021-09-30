@@ -6,7 +6,7 @@ function gotopost(e, postid, section) {
 }
 function postsubmit(e, section) {
   e.preventDefault();
- 
+
   var postlength = $("#postcontent").val().length;
   var file = $("#pictureupload").get(0).files[0];
 
@@ -22,7 +22,7 @@ function postsubmit(e, section) {
     //If image will be attached add field to request body inidicating a file should be expect
     postdata.append("expectfile", "true")
   }
-  
+
   //Re-order elements so multer populates request body object properly on back-end
   postdata.delete("postpicture");
   postdata.append("section", section);
@@ -48,7 +48,7 @@ function postsubmit(e, section) {
 //Utility function to check file extension validity
 function checkFileExt(filename){
   var splitname = filename.split(".");
-  var ext = splitname[splitname.length-1];
+  var ext = splitname[splitname.length-1].toLowerCase();
   var allowtypes = ["jpg", "png", "gif", "bmp"]
   if(allowtypes.includes(ext)){
     return true;

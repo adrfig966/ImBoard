@@ -31,7 +31,7 @@ var uploadmw = multer({
   fileFilter: function (req, file, cb) {
     var allowtypes = ["jpg", "png", "gif", "bmp"];
     var splitname = file.originalname.split(".");
-    var ext = splitname[splitname.length - 1];
+    var ext = splitname[splitname.length - 1].toLowerCase();
     if (allowtypes.includes(ext)) {
       return cb(null, true);
     }
@@ -80,7 +80,8 @@ router.post("/newpost", uploadmw, (req, res) => {
     newpost.imagepath = req.file.path;
     newpost.imagename = req.file.filename;
   }
-  Post.checkInsert(req.body.section || "testing", (checkerr, result) => {
+  //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
+  Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
     if (checkerr) return res.status(400).send(checkerr);
     newpost.save((saverr, doc) => {
       if (saverr) return res.status(400).send(saverr);
@@ -116,46 +117,91 @@ router.post("/addcomment", (req, res) => {
 });
 
 /**************
-Description: Adds a like to the given post using post id
+Description: Adds a like/dislike to the given post using post id, vote type is specifed by the path parameters. Removes opposite vote if vote exists.
 Method: POST
 Body: ID (string)
+Path: type (string)
 Response: Updated post if successful (200), else error object (400)
 ***************/
-router.post("/addvote", (req, res) => {
-  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  console.log("User IP: " + ip);
+router.post("/addvote/:type", (req, res) => {
+  var ip = req.parsedIP;
+  if (req.params.type != "likes" && req.params.type != "dislikes")
+    return res.status(400).send("Ivalid vote type");
+
+  var insert = req.params.type == "likes" ? "likes" : "dislikes";
+  var remove = req.params.type == "likes" ? "dislikes" : "likes";
+
   Post.findOneAndUpdate(
     {
       _id: req.body.id,
-      likes: {
-        "$not": {
-          "$elemMatch": {
-            ip: ip
-          }
-        }
-      },
-      dislikes: {
-        "$not": {
-          "$elemMatch": {
-            ip: ip
-          }
-        }
-      }
+      [insert + ".ip"]: { $ne: ip },
+      [remove + ".ip"]: ip,
     },
     {
-      $addToSet: {
-        likes: { ip: ip },
-      },
+      $push: { [insert]: { ip: ip } },
+      $pull: { [remove]: { ip: ip } },
+      $inc: { [insert + "count"]: 1, [remove + "count"]: -1 },
     },
-    { runValidators: true, new: true },
-    (err, post) => {
-      if (err) return res.status(400).send(err);
-      console.log(post);
-      if(!post) return res.status(200).send("You already liked this post.");
-      res.status(200).send(post);
-    }
-  );
+    { runValidators: true, new: true }
+  )
+    .then((post) => {
+      if (!post)
+        return Post.findOneAndUpdate(
+          {
+            _id: req.body.id,
+            [insert + ".ip"]: { $ne: ip },
+          },
+          {
+            $push: { [insert]: { ip: ip } },
+            $inc: { [insert + "count"]: 1 },
+          },
+          { runValidators: true, new: true }
+        );
+      return post;
+    })
+    .then((post) => {
+      if(!post) return res.status(200).send("You already voted on this post.");
+      return res.status(200).send(post);
+    })
+    .catch((err) => {
+      return res.status(400).send(err);
+    });
 });
+
+/**************
+Description: Removes a like/dislike from the given post using post id, vote type is specifed by the path parameters.
+Method: POST
+Body: ID (string)
+Path: type (string)
+Response: Updated post if successful (200), else error object (400)
+***************/
+router.post("/removevote/:type", (req, res) => {
+  var ip = req.parsedIP;
+  if (req.params.type != "likes" && req.params.type != "dislikes")
+    return res.status(400).send("Ivalid vote type");
+
+  var remove = req.params.type;
+
+  Post.findOneAndUpdate(
+    {
+      _id: req.body.id,
+      [remove + ".ip"]: ip,
+    },
+    {
+      $pull: { [remove]: { ip: ip } },
+      $inc: { [remove + "count"]: -1 },
+    },
+    { runValidators: true, new: true }
+  )
+    .then((post) => {
+      if (!post) return res.status(200).send("Theres is no vote to remove.");
+      return res.status(200).send(post);
+    })
+    .catch((err) => {
+      return res.status(400).send(err);
+    });
+});
+
 
 /**************
 Description: Sends image with given file name from post uploads directory
@@ -208,9 +254,24 @@ Query Params: Section (string)
 Response: Single post for given ID as JSON if success (200), else error object (400)
 ***************/
 router.get("/edgerank", (req, res) => {
-  Post.sectionEdgeRank(req.query.section || "testing", (rankerr, result) => {
+  var options = {
+    section: req.query.section || "testing",
+    ip: req.parsedIP,
+    id: req.query.id,
+  }
+
+  Post.sectionEdgeRank(options, (rankerr, result) => {
     if (rankerr) return res.status(400).send(rankerr);
-    res.header("Content-Type",'application/json');
+    res.status(200).send(result);
+  });
+});
+
+
+/* Testing purposes */
+router.get("/edgerankcheck", (req, res) => {
+  Post.checkInsertEdgeRank(req.query.section || "testing", (rankerr, result) => {
+    if (rankerr) return res.status(400).send(rankerr);
+    if (!result.length) console.log("Nothing to delete");
     res.status(200).send(result);
   });
 });

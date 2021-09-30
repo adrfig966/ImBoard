@@ -17,21 +17,7 @@
                 posted by
                 {{post.user}}
             </small>
-            <div class="row my-2">
-                <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center justify-content-center">
-                    <span class="badge badge-pill badge-light">Comments:
-                        {{post.commentcount}}</span>
-                    <span class="badge badge-pill badge-light id2dt">{{post._id}}</span>
-                </div>
-                <div class="col-12 col-md-6">
-                    <button class="btn btn-light" onclick="gotopost(event,'{{post._id}}', '{{section}}')" type="button">View Post</button>
-                    <button class="btn btn-light comment-btn" onclick="addcomment(event,'{{post._id}}', '{{section}}')" type="button">Add Comment</button>
-                </div>
-            </div>
-            <div class="btn-group mb-2" role="group" aria-label="Vote buttons">
-              <button type="button" class="btn btn-primary">Like</button>
-              <button type="button" class="btn btn-secondary">Dislike</button>
-            </div>
+            {% include "./includes/comment-controls.njk" %}
         </div>
     {% endfor %}
 </div>{% endblock %}

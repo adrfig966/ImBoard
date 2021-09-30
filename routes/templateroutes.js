@@ -14,15 +14,19 @@ Path Params: Section (string)
 Response: An HTML page with section posts
 ***************/
 router.get("/:section([0-9a-zA-Z]{2,30})/posts", (req, res) => {
-  Post.find({ section: req.params.section })
-    .sort([["commentcount", -1], ["_id", -1]])
-    .exec((err, postarr) => {
-      if (err) return res.status(400).send(err);
-      //section is propagated into the template to allow highlighting of active page
-      res
-        .status(200)
-        .render("posts", { postarr: postarr, section: req.params.section });
-    });
+  var options = {
+    section: req.params.section || "testing",
+    ip: req.parsedIP,
+  }
+
+  //Grab post using ranking algorithm, posts are automatically sorted by best
+  Post.sectionEdgeRank(options, (rankerr, postarr) => {
+    if (rankerr) return res.status(400).send(rankerr);
+    //Section is propagated into the template to allow highlighting of active page
+    res
+      .status(200)
+      .render("posts", { postarr: postarr, section: req.params.section });
+  });
 });
 
 /**************
@@ -35,9 +39,16 @@ Response: An HTML page with given post content
 router.get(
   "/:section([0-9a-zA-Z]{0,30})/posts/:id([0-9a-fA-F]{24})",
   (req, res) => {
-    Post.find({ _id: req.params.id }, (err, posts) => {
+    var options = {
+      section: req.params.section || "testing",
+      id: req.params.id,
+      ip: req.parsedIP,
+    }
+
+    Post.sectionEdgeRank(options, (err, posts) => {
       if (err) return res.status(400).send(err);
 
+      // We don't have to wait for the view incremement to finish to send the post back to the user.
       Post.findOneAndUpdate(
         { _id: posts[0]._id },
         {
@@ -46,7 +57,6 @@ router.get(
         { runValidators: true, new: true },
         (err, post) => {
           if (err) return console.log(err);
-          console.log(post);
         }
       );
 

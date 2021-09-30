@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-fs = require("fs");
-path = require("path");
+const fs = require("fs");
+const path = require("path");
 
-const POST_LIMIT = 2; // Starts from 0 :)
+const POST_LIMIT = 3; // Starts from 0 :)
 
 var CommentSchema = mongoose.Schema({
   user: {
@@ -48,72 +48,113 @@ var PostSchema = mongoose.Schema({
   views: { type: Number, default: 0 },
   likes: { type: [LikeSchema] },
   dislikes: { type: [DislikeSchema] },
-  lastcomment: { type: Date, default: "1996-08-22" },
+  likescount: { type: Number, default: 0 },
+  dislikescount  : { type: Number, default: 0 },
+  lastcomment: { type: Date, default: Date.now },
   testfield: { type: String, default: "", trim: true, maxlength: 15 },
-});
-PostSchema.statics.checkInsert = function (targetsection, cb) {
-  this.find({ section: targetsection }).count({}, (err, count) => {
-    if (count > POST_LIMIT) {
-      this.find({ section: targetsection })
-        .sort([
-          ["commentcount", 1],
-          ["_id", 1],
-        ])
-        .limit(count - POST_LIMIT)
-        .exec()
-        .then((posts) => {
-          var deldata = {};
-          deldata.ids = [];
-          deldata.paths = [];
-          posts.forEach((post) => {
-            deldata.ids.push(post._id);
-            if (post.imagepath) {
-              deldata.paths.push(post.imagepath);
-            }
-          });
-          return deldata;
-        })
-        .then((deldata) => {
-          for (imagepath of deldata.paths) {
-            fs.unlinkSync(imagepath);
-          }
-          //Delete images regardless of whether post delete succeeds to prevent accidental image spam
-          return this.deleteMany({ _id: { $in: [...deldata.ids] } });
-        })
-        .then((info) => {
-          cb(null, info);
-        })
-        .catch((err) => {
-          cb(err, null);
-        });
-    } else {
-      cb(null, { msg: "No remove needed" });
+}, { timestamps: true });
+
+/* Rank algorithm score computed from existing post fields */
+const rankfield = {
+  $divide: [
+    {
+      $add: [
+        { $multiply: ["$commentcount", 0.2] },
+        { $multiply: ["$likescount", 0.1] },
+        { $multiply: ["$views", 0.6] },
+      ],
+    },
+    {
+      $add: [
+        1,
+        { $multiply: [{ $subtract: [new Date(), "$lastcomment"] }, 0.2] },
+        { $multiply: [{ $subtract: [new Date(), "$createdAt"] }, 0.8] },
+      ],
+    },
+  ],
+};
+
+const likecond = function(ip) {
+  if(!ip) return {};
+
+  return {
+    canlike: {
+      $not: {
+        $in : [ ip, "$likes.ip" ],
+      }
+    },
+    candislike: {
+      $not: {
+        $in : [ ip, "$dislikes.ip" ],
+      }
     }
+  }
+}
+
+PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
+  this.aggregate([
+    { $match:
+      { section: section || 'testing' }
+    }, //end $match
+    { $addFields:
+      // Ranking algorithm defined above
+      { ranking: rankfield }
+    }, //end $project
+    { $sort: { ranking: -1, "_id": -1 } },
+    { $skip: POST_LIMIT-1 }
+    ]
+  ).then((posts) => { //end Items.aggregate
+    //Grab all post IDs and image paths to be deleted, order does not matter since they all have to be deleted.
+    var deldata = {};
+    deldata.ids = [];
+    deldata.paths = [];
+    posts.forEach((post) => {
+      deldata.ids.push(post._id);
+      if (post.imagepath) {
+        deldata.paths.push(post.imagepath);
+      }
+    });
+
+    //Delete images regardless of whether post delete succeeds.
+    for (imagepath of deldata.paths) {
+      fs.unlinkSync(imagepath);
+    }
+    //Delete posts
+    return this.deleteMany({ _id: { $in: [...deldata.ids] } });
+  }).then((info) => {
+    cb(null, info);
+  })
+  .catch((err) => {
+    cb(err);
   });
+
   return;
 };
 
-PostSchema.statics.sectionEdgeRank = function (targetsection, cb) {
+PostSchema.statics.sectionEdgeRank = function (opts, cb) {
+  var optionalfields = {};
+  var optionalfilters = {};
+  if(opts.ip) Object.assign(optionalfields, likecond(opts.ip));
+  if(opts.id) optionalfilters._id = mongoose.Types.ObjectId(opts.id);
+  
   this.aggregate([
     { $match:
-      { section: targetsection && 'testing' }
+      {
+        section: opts.section || 'testing',
+        ...optionalfilters,
+      }
     }, //end $match
     { $addFields:
       {
-        ranking: {
-          $add: [
-            {$multiply: [{ $size: "$comments" }, 0.3]},
-            {$multiply: ["$views", 0.7]}
-          ]
-        }
+        ranking: rankfield,
+        ...optionalfields,
       }
     }, //end $project
-    { $sort: { ranking: -1 } },
+    { $sort: { ranking: -1, "_id": -1 } },
     { $limit: parseInt("20") }
     ],
     function(err, results) {
       if (err) {
-        console.log(err);
         return cb(err);
       }
       cb(null, results);
@@ -121,4 +162,5 @@ PostSchema.statics.sectionEdgeRank = function (targetsection, cb) {
   ); //end Items.aggregate
   return;
 };
+
 module.exports = new mongoose.model("Post", PostSchema);

@@ -21,7 +21,7 @@ Server & DB configuration
 
 //Mongoose connection set up
 mongoose.connect(
-  require("./connectionstr"),
+   require("./connectionstr"),
   { useNewUrlParser: true },
   (err) => {
     if (err) console.log(err);
@@ -56,7 +56,7 @@ app.use(templateroutes);
 app.use(apiroutes);
 
 /**************
-Special Routes
+Testing, in progress
 ***************/
 app.get("/", (req, res) => {
   res.redirect("/testing/posts");
