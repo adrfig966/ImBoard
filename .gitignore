@@ -2,3 +2,4 @@
 /uploads/*
 !/uploads/placeholder
 /connectionstr.js
+/googleauth.env
