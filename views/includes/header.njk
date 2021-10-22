@@ -1,5 +1,5 @@
 <div class="container-fullwidth">
-    <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">I'mBoard</a>
         <button aria-controls="collapsecontent" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#collapsecontent" data-toggle="collapse" type="button">
             <span class="navbar-toggler-icon"></span>
@@ -20,9 +20,18 @@
                 {% endfor %}
             </ul>
             {% if section %}
-                <ul class="navbar-nav">
-                    <button class="btn btn-success" type="button" data-toggle="modal" data-target="#newpostmodal">New Post +</button>
-                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-success col-6 col-md-auto" type="button" data-toggle="modal" data-target="#newpostmodal">New Post +</button>
+                    {% if not user %}
+                    <button onclick="location.href='/auth/google'" type="button" class="btn btn-success ml-2 col-6 col-md-auto">Sign In</button>
+                    {% else %}
+                    <button type="button" class="btn btn-success dropdown-toggle ml-2 col-6 col-md-auto" data-toggle="dropdown" aria-haspopup="true">Account</button>
+                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-account bg-dark text-light p-2 mr-1">
+                      <img class="rounded-circle ml-2" src="{{ user.photos[0].value }}">
+                      <a href="/logout" class="text-light">Sign Out</a>
+                    </div>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     </nav>

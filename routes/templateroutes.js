@@ -25,7 +25,7 @@ router.get("/:section([0-9a-zA-Z]{2,30})/posts", (req, res) => {
     //Section is propagated into the template to allow highlighting of active page
     res
       .status(200)
-      .render("posts", { postarr: postarr, section: req.params.section });
+      .render("posts", { postarr: postarr, section: req.params.section, user: req.user });
   });
 });
 
@@ -64,7 +64,8 @@ router.get(
       res.status(200).render("post", {
         post: posts[0],
         section: req.params.section,
-        comid: req.query.comid
+        comid: req.query.comid,
+        user: req.user
       });
     });
   }

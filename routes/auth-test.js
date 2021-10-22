@@ -22,7 +22,6 @@ passport.use(new GoogleStrategy({
 
 /* Testing purposes */
 router.get("/checkenv", (req, res) => {
-  console.log(process.env.GOOGLE_CLIENT_ID);
   res.status(200).send("Ping");
 });
 
@@ -37,6 +36,7 @@ const checkUserLoggedIn = (req, res, next) => {
 
 //Protected Route.
 router.get('/profile', checkUserLoggedIn, (req, res) => {
+  console.log(req.user);
   res.send(`<h1>${req.user.displayName}'s Dashboard</h1>`)
 });
 
@@ -45,7 +45,7 @@ router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 
 
 router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/failed' }),
   function(req, res) {
-    res.redirect('/profile');
+    res.redirect('/');
   }
 );
 
