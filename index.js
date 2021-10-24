@@ -64,9 +64,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 //Router middleware
+app.use(authroutes); // Auth routes must come before any other routes
 app.use(templateroutes);
 app.use(apiroutes);
-app.use(authroutes);
 /**************
 Special Routes
 ***************/

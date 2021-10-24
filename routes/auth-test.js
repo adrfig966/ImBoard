@@ -56,4 +56,12 @@ router.get('/logout', (req, res) => {
     res.redirect('/');
 })
 
+router.use((req, res, next) => {
+  if(req.user){
+    res.locals.user = req.user;
+  }
+
+  next();
+})
+
 module.exports = router;
