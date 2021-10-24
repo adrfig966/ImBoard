@@ -10,8 +10,6 @@
             <div class="modal-body text-center">
                 <p>Enter your information below and hit Create to create your post</p>
                 <form class="postform" enctype="multipart/form-data" onsubmit="postsubmit(event,'{{section}}')" postsection={{section}}>
-                    <label for="postuser" class="text-info">User name (optional)</label>
-                    <input type="text" class="form-control" name="user" id="postuser" maxlength="25" pattern="[A-Za-z0-9_]{0,25}">
                     <small class="text-success" id="postulength">0/25</small><br>
                     <label for="postcontent" class="text-info">Post body</label>
                     <textarea class="form-control" name="content" id="postcontent" required></textarea>

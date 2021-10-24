@@ -71,19 +71,6 @@ $("#pictureupload").change(e => {
     sizebar.removeClass("bg-danger");
   }
 });
-//User name validation feedback
-$("#postuser").keyup(e => {
-  var postuserlength = e.target.value.length;
-  var lengthdisplay = $("#postulength");
-  lengthdisplay.text(postuserlength + "/25");
-  if ($(e.target).is(":invalid")) {
-    lengthdisplay.removeClass("text-success");
-    lengthdisplay.addClass("text-danger");
-  } else {
-    lengthdisplay.addClass("text-success");
-    lengthdisplay.removeClass("text-danger");
-  }
-});
 // Post content validation feedback
 $("#postcontent").keyup(e => {
   var postlength = e.target.value.length;

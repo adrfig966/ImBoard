@@ -24,12 +24,15 @@ var DislikeSchema = mongoose.Schema({
 });
 
 var PostSchema = mongoose.Schema({
+  /*Used for anonymous posts*/
   user: {
     type: String,
     default: "Anonymous",
-    trim: true,
-    maxlength: 25,
-    match: /^[A-Za-z0-9\_]*$/,
+  },
+  /*Used for registered posts*/
+  userref: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
   },
   title: { type: String, default: "", trim: true, maxlength: 15 },
   content: { type: String, required: true, minlength: 10, maxlength: 250 },
@@ -136,7 +139,7 @@ PostSchema.statics.sectionEdgeRank = function (opts, cb) {
   var optionalfilters = {};
   if(opts.ip) Object.assign(optionalfields, likecond(opts.ip));
   if(opts.id) optionalfilters._id = mongoose.Types.ObjectId(opts.id);
-  
+
   this.aggregate([
     { $match:
       {

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const User = require('../schemas/user');
 
 passport.serializeUser(function(user, done) {
     done(null, user);
@@ -16,6 +17,10 @@ passport.use(new GoogleStrategy({
     callbackURL: process.env.CALLBACK_URL
   },
   function(accessToken, refreshToken, profile, cb) {
+    User.findOneAndUpdate({googleid: profile.id}, {}, {upsert: true}, (doc, err) => {
+      if(err) return done(err);
+    });
+
     return cb(null, profile);
   }
 ));
@@ -35,8 +40,7 @@ const checkUserLoggedIn = (req, res, next) => {
 }
 
 //Protected Route.
-router.get('/profile', checkUserLoggedIn, (req, res) => {
-  console.log(req.user);
+router.get('/profile', checkUserLoggedIn, (req, res) => {;
   res.send(`<h1>${req.user.displayName}'s Dashboard</h1>`)
 });
 

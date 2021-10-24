@@ -68,9 +68,7 @@ router.post("/newpost", uploadmw, (req, res) => {
     section: req.body.section,
   };
   //Using FormData objects on front end prevents middleware fix from working, this is a quickfix for empty values.
-  if (req.body.user) {
-    postdata.user = req.body.user;
-  }
+  postdata.user = req.hashedIP;
   //Check file upload errors
   if (!req.file && req.body.expectfile == "true") {
     console.log("Error with upload");
