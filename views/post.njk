@@ -2,19 +2,7 @@
 {% block content %}
 <div class="container text-center posts-container">
     <div class="post py-3 px-2 mb-2" id="{{post._id}}">
-        {% if post.title %}
-            <h5>{{ post.title }}</h5>
-        {% endif %}
-        {% if post.imagename %}
-            <img src="/getimage/{{post.imagename}}"  class="post-image">
-        {% endif %}
-        <p>
-            {{post.content}}
-        </p>
-        <small>
-            posted by
-            {{post.user}}
-        </small>
+        {% include "./includes/post-info.njk" %}
         {% include "./includes/comment-controls.njk" %}
     </div>
     <div class="comment-titles">

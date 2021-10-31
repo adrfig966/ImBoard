@@ -1,6 +1,8 @@
 const multer = require("multer");
 const express = require("express");
+const mongoose = require("mongoose");
 const Post = require("../schemas/post");
+const User = require("../schemas/user");
 const path = require("path");
 const router = express.Router();
 
@@ -78,12 +80,28 @@ router.post("/newpost", uploadmw, (req, res) => {
     newpost.imagepath = req.file.path;
     newpost.imagename = req.file.filename;
   }
-  //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
-  Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
-    if (checkerr) return res.status(400).send(checkerr);
-    newpost.save((saverr, doc) => {
-      if (saverr) return res.status(400).send(saverr);
-      res.status(200).send(doc);
+
+  var userquery = {}
+  if(req.user){
+    userquery.gmail = req.user._json.email;
+    console.log(req.user._json.email);
+  }
+  User.findOne(userquery, (error, user) => {
+    if(error){
+      return res.status(400).send(error);
+    }
+    if(!user){
+      console.log("User not found");
+    }else {
+      newpost.userref = mongoose.Types.ObjectId(user._id);;
+    }
+    //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
+    Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
+      if (checkerr) return res.status(400).send(checkerr);
+      newpost.save((saverr, doc) => {
+        if (saverr) return res.status(400).send(saverr);
+        res.status(200).send(doc);
+      });
     });
   });
 });

@@ -9,8 +9,8 @@ const UserSchema = mongoose.Schema({
     type: String,
     default: "",
   },
-  googleid: {
-    type: Number,
+  gmail: {
+    type: String,
     default: "",
   },
 });

@@ -1,6 +1,6 @@
 body{
     text-align: center;
-    background-color: rgb(37, 39, 37);
+    background-color: #f1faee;
 }
 body > .container {
     color: white;
@@ -9,12 +9,15 @@ body > .container {
 .modal{
     color: black;
 }
+.navbar {
+  background-color: #e3f2fd;
+}
 .post,
 .footer__inner{
-    background-color: #70443d;
+    background-color: #457b9d;
 }
 .comment{
-    background-color: #a06868;
+    background-color: #457b9d;
 }
 .comment-content a{
     color: white;
@@ -22,7 +25,7 @@ body > .container {
     font-style: italic;
 }
 .comment-footer{
-    background-color: #583741
+    background-color: #1d3557
 }
 .focuscomment{
     background-color: #93718a;

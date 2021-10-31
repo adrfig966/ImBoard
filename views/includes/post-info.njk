@@ -1,0 +1,20 @@
+<div class="post-info">
+  {% if post.title %}
+      <h5>{{ post.title }}</h5>
+  {% endif %}
+
+  {% if post.imagename %}
+      <img src="/getimage/{{post.imagename}}" class="post-image d-block mx-auto">
+  {% endif %}
+  <p>
+      {% if isloop %}
+      {{post.content | truncate(100)}}
+      {% else %}
+      {{post.content}}
+      {% endif %}
+  </p>
+  <small>
+      posted by
+      {{post.user}}
+  </small>
+</div>

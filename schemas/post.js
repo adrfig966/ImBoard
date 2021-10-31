@@ -17,6 +17,7 @@ var CommentSchema = mongoose.Schema({
 
 var LikeSchema = mongoose.Schema({
   ip: { type: String },
+  gmail: { type: String }
 });
 
 var DislikeSchema = mongoose.Schema({

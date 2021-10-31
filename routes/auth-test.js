@@ -16,12 +16,11 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.CALLBACK_URL
   },
-  function(accessToken, refreshToken, profile, cb) {
-    User.findOneAndUpdate({googleid: profile.id}, {}, {upsert: true}, (doc, err) => {
+  function(accessToken, refreshToken, profile, done) {
+    User.findOneAndUpdate({gmail: profile._json.email}, {}, {upsert: true}, (err, doc) => {
       if(err) return done(err);
+      return done(null, profile);
     });
-
-    return cb(null, profile);
   }
 ));
 
