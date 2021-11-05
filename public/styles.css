@@ -1,20 +1,20 @@
 body{
-    text-align: center;
     background-color: #f1faee;
 }
 body > .container {
-    color: white;
     overflow:hidden;
 }
 .modal{
     color: black;
 }
 .navbar {
-  background-color: #e3f2fd;
+  background-color: #a8dadc;
 }
-.post,
-.footer__inner{
-    background-color: #457b9d;
+footer {
+    background-color: #a8dadc;
+}
+.post {
+    background-color: #a8dadc;
 }
 .comment{
     background-color: #457b9d;
@@ -31,6 +31,19 @@ body > .container {
     background-color: #93718a;
 }
 .post-image{
-    max-height: 500px;
-    max-width: 80%;
+    max-height: 250px;
+    max-width: 100%;
+}
+.post-image-bg {
+    background-size: cover;
+    background-position: center;
+    min-height: 200px;
+}
+@media (min-width: 768px) {
+    .post {
+        min-height: 300px;
+    }
+    .post-image-bg {
+        min-height: 0;
+    }
 }

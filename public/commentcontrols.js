@@ -7,7 +7,7 @@ if($(".focuscomment").length > 0){$(".focuscomment").next().get(0).scrollIntoVie
 function commentsubmit(e) {
   e.preventDefault();
   //Grab the text area reference from the data property attached to event object
-  var commentlength = $(e.data.textref).val().length; 
+  var commentlength = $(e.data.textref).val().length;
   if (commentlength < 10 || commentlength > 150) {
     return; //Exit if length is invalid
   }
@@ -38,7 +38,7 @@ function formclose(e) {
 function commentinput(e) {
   var lengthdisplay = e.data.lengthref;
   $(lengthdisplay).text(e.target.value.length + "/150");
-  if (e.target.value.length >= 10 && e.target.value.length <= 150) { 
+  if (e.target.value.length >= 10 && e.target.value.length <= 150) {
     $(lengthdisplay).removeClass("text-warning");
     $(lengthdisplay).addClass("text-succcess");
   } else {
@@ -114,7 +114,7 @@ function addcomment(e, postid, section) {
       .append(closebtn)
   );
   //Append new elements
-  $(`div#${postid}`).append(
+  $(`div#${postid} .content-half`).append(
     $("<form></form>")
       .addClass("comment-input")
       .append(formrow)

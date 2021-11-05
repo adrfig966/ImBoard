@@ -1,24 +1,20 @@
 {% extends "layouts/main.njk" %}
 {% block content %}
-<div class="container text-center posts-container">
-    <div class="post py-3 px-2 mb-2" id="{{post._id}}">
-        {% include "./includes/post-info.njk" %}
-        {% include "./includes/comment-controls.njk" %}
-    </div>
+<div class="container posts-container mt-2">
+    {% include "./includes/post-card.njk" %}
     <div class="comment-titles">
         <h3>Comments</h3>
-
     </div>
     {% for comment in post.comments %}
         <div class="comments-container">
-            <div class="comment py-4 mx-2 rounded-top row {{ " focuscomment" if comment._id == comid}}">
+            <div class="comment py-4 rounded-top row {{ " focuscomment" if comment._id == comid}}">
                 <div class="col-12 comment-content">{{comment.content}}</div>
                 <div class="col-12">
                     <small class="text-center">-
                         {{comment.user}}</small>
                 </div>
             </div>
-            <div class="comment-footer mb-2 py-2 rounded-bottom mx-2 row">
+            <div class="comment-footer mb-2 py-2 rounded-bottom row">
                 <div class="col-12 col-md-6 offset-md-6">
                     <span class="badge badge-pill badge-light id2dt">{{comment._id}}</span>
                     <span class="badge badge-pill badge-dark">{{comment._id}}</span>
