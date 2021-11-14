@@ -14,7 +14,7 @@ const Post = require("./schemas/post");
 //Routes
 const templateroutes = require("./routes/templateroutes");
 const apiroutes = require("./routes/apiroutes");
-const authroutes = require("./routes/auth-test");
+const authroutes = require("./routes/authroutes");
 
 //Custom Middleware
 const middleware = require("./util/middleware");

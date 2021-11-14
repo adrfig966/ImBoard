@@ -1,10 +1,23 @@
 const multer = require("multer");
 const express = require("express");
 const mongoose = require("mongoose");
+const ratelimit = require("express-rate-limit");
+const hash = require('object-hash');
 const Post = require("../schemas/post");
 const User = require("../schemas/user");
 const path = require("path");
 const router = express.Router();
+
+/* Limit new posts to 5 every 2 hours */
+const postlimiter = ratelimit({
+  windowMs: 120 * 60 * 1000,
+  max: 5
+});
+/* Limit new comments to 10 every 15 minutes */
+const comlimiter = ratelimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10
+});
 
 /**************
 Fileupload set up, uses Multer
@@ -29,7 +42,7 @@ var dstorage = multer.diskStorage({
 //Generating middleware for handling 'postpicture' file input field
 var uploadmw = multer({
   storage: dstorage,
-  limits: { fileSize: 1048576, files: 1 },
+  limits: { fileSize: 3145728, files: 1 },
   fileFilter: function (req, file, cb) {
     var allowtypes = ["jpg", "png", "gif", "bmp"];
     var splitname = file.originalname.split(".");
@@ -64,27 +77,31 @@ Method: POST
 Body: User (string), Content (string), Section (string), File (object, file meta-data from Multer)
 Response: New post if successful (200), else error object (400)
 ***************/
-router.post("/newpost", uploadmw, (req, res) => {
+router.post("/newpost", postlimiter, uploadmw, (req, res) => {
   var postdata = {
     content: req.body.content,
     section: req.body.section,
   };
-  //Using FormData objects on front end prevents middleware fix from working, this is a quickfix for empty values.
-  postdata.user = req.hashedIP;
   //Check file upload errors
   if (!req.file && req.body.expectfile == "true") {
     console.log("Error with upload");
   }
   var newpost = new Post(postdata);
+  //Using FormData objects on front end prevents middleware fix from working, this is a quickfix for empty values.
   if (req.file) {
     newpost.imagepath = req.file.path;
     newpost.imagename = req.file.filename;
   }
-
+  newpost.user = req.hashedIP;
   var userquery = {}
   if(req.user){
     userquery.gmail = req.user._json.email;
     console.log(req.user._json.email);
+  }else if(req.body.user) {
+    if(req.body.user.length > 25){
+      console.log("Error max length exceeded");
+    }
+    newpost.user = hash.MD5(req.body.user);
   }
   User.findOne(userquery, (error, user) => {
     if(error){
@@ -112,12 +129,19 @@ Method: POST
 Body: ID (string), User (string), Content (string)
 Response: Updated post if successful (200), else error object (400)
 ***************/
-router.post("/addcomment", (req, res) => {
+router.post("/addcomment", comlimiter, (req, res) => {
+  var comuser = req.hashedIP;
+  if(req.body.user) {
+    if(req.body.user.length > 25){
+      console.log("Error max length exceeded");
+    }
+    comuser = hash.MD5(req.body.user);
+  }
   Post.findOneAndUpdate(
     { _id: req.body.id },
     {
       $push: {
-        comments: { user: req.body.user, content: req.body.content },
+        comments: { user: comuser, content: req.body.content },
       },
       $inc: { commentcount: 1 },
       $set: {
@@ -140,7 +164,11 @@ Path: type (string)
 Response: Updated post if successful (200), else error object (400)
 ***************/
 router.post("/addvote/:type", (req, res) => {
+  if(!req.user) return res.sendStatus(401);
+  console.log("Value of req.user", req.user);
+  var gmail = req.user._json.email;
   var ip = req.parsedIP;
+
   if (req.params.type != "likes" && req.params.type != "dislikes")
     return res.status(400).send("Ivalid vote type");
 
@@ -150,12 +178,12 @@ router.post("/addvote/:type", (req, res) => {
   Post.findOneAndUpdate(
     {
       _id: req.body.id,
-      [insert + ".ip"]: { $ne: ip },
-      [remove + ".ip"]: ip,
+      [insert + ".gmail"]: { $ne: gmail },
+      [remove + ".gmail"]: gmail,
     },
     {
-      $push: { [insert]: { ip: ip } },
-      $pull: { [remove]: { ip: ip } },
+      $push: { [insert]: { gmail: gmail } },
+      $pull: { [remove]: { gmail: gmail } },
       $inc: { [insert + "count"]: 1, [remove + "count"]: -1 },
     },
     { runValidators: true, new: true }
@@ -165,10 +193,10 @@ router.post("/addvote/:type", (req, res) => {
         return Post.findOneAndUpdate(
           {
             _id: req.body.id,
-            [insert + ".ip"]: { $ne: ip },
+            [insert + ".gmail"]: { $ne: gmail },
           },
           {
-            $push: { [insert]: { ip: ip } },
+            $push: { [insert]: { gmail: gmail } },
             $inc: { [insert + "count"]: 1 },
           },
           { runValidators: true, new: true }
@@ -192,7 +220,11 @@ Path: type (string)
 Response: Updated post if successful (200), else error object (400)
 ***************/
 router.post("/removevote/:type", (req, res) => {
+  if(!req.user) return res.sendStatus(401);
+
+  var gmail = req.user._json.email;
   var ip = req.parsedIP;
+
   if (req.params.type != "likes" && req.params.type != "dislikes")
     return res.status(400).send("Ivalid vote type");
 
@@ -201,10 +233,10 @@ router.post("/removevote/:type", (req, res) => {
   Post.findOneAndUpdate(
     {
       _id: req.body.id,
-      [remove + ".ip"]: ip,
+      [remove + ".gmail"]: gmail,
     },
     {
-      $pull: { [remove]: { ip: ip } },
+      $pull: { [remove]: { gmail: gmail } },
       $inc: { [remove + "count"]: -1 },
     },
     { runValidators: true, new: true }

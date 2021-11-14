@@ -19,6 +19,8 @@ router.get("/:section([0-9a-zA-Z]{2,30})/posts", (req, res) => {
     ip: req.parsedIP,
   }
 
+  if(req.user)options.gmail = req.user._json.email;
+
   //Grab post using ranking algorithm, posts are automatically sorted by best
   Post.sectionEdgeRank(options, (rankerr, postarr) => {
     if (rankerr) return res.status(400).send(rankerr);
@@ -44,6 +46,8 @@ router.get(
       id: req.params.id,
       ip: req.parsedIP,
     }
+    
+    if(req.user)options.gmail = req.user._json.email;
 
     Post.sectionEdgeRank(options, (err, posts) => {
       if (err) return res.status(400).send(err);

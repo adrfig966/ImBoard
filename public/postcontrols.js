@@ -16,7 +16,7 @@ function postsubmit(e, section) {
     return;
   }
   if(file){
-    if(file.size > 1048576 || !checkFileExt(file.name)){
+    if(file.size > 3145728 || !checkFileExt(file.name)){
       return;
     }
     //If image will be attached add field to request body inidicating a file should be expect
@@ -35,14 +35,15 @@ function postsubmit(e, section) {
     processData: false,
     contentType: false
   }).then(
-    (data, status) => {
-      console.log(data);
-      gotopost(null, data._id, section)
-    },
-    errdata => {
-      console.log(errdata);
+  (data, status) => {
+    console.log(data);
+    gotopost(null, data._id, section)
+  }).fail((err) => {
+    if(err.status == 429){
+      alert("Please slow your rate of posts");
+      return;
     }
-  );
+  });
 }
 
 //Utility function to check file extension validity
@@ -60,7 +61,7 @@ function checkFileExt(filename){
 $("#pictureupload").change(e => {
   if(!e.target.files[0]){return;}
   var file = e.target.files[0];
-  var percentused = file.size / 1048576 * 100;
+  var percentused = file.size / 3145728 * 100;
   var sizebar = $(".fsize-bar");
   sizebar.width(percentused + "%");
   if(!checkFileExt(file.name)){
@@ -69,6 +70,19 @@ $("#pictureupload").change(e => {
   }else{
     sizebar.addClass("bg-success");
     sizebar.removeClass("bg-danger");
+  }
+});
+//User name validation feedback
+$("#postuser").keyup(e => {
+  var postuserlength = e.target.value.length;
+  var lengthdisplay = $("#postulength");
+  lengthdisplay.text(postuserlength + "/25");
+  if ($(e.target).is(":invalid")) {
+    lengthdisplay.removeClass("text-success");
+    lengthdisplay.addClass("text-danger");
+  } else {
+    lengthdisplay.addClass("text-success");
+    lengthdisplay.removeClass("text-danger");
   }
 });
 // Post content validation feedback

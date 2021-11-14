@@ -8,9 +8,6 @@ var CommentSchema = mongoose.Schema({
   user: {
     type: String,
     default: "Anonymous",
-    trim: true,
-    maxlength: 25,
-    match: /^[A-Za-z0-9\_]*$/,
   },
   content: { type: String, required: true, minlength: 10, maxlength: 150 },
 });
@@ -22,6 +19,7 @@ var LikeSchema = mongoose.Schema({
 
 var DislikeSchema = mongoose.Schema({
   ip: { type: String },
+  gmail: { type: String }
 });
 
 var PostSchema = mongoose.Schema({
@@ -78,7 +76,7 @@ const rankfield = {
   ],
 };
 
-const likecond = function(ip) {
+const iplike = function(ip) {
   if(!ip) return {};
 
   return {
@@ -94,6 +92,24 @@ const likecond = function(ip) {
     }
   }
 }
+
+const gmaillike = function(gmail) {
+  if(!gmail) return {};
+
+  return {
+    canlike: {
+      $not: {
+        $in : [ gmail, "$likes.gmail" ],
+      }
+    },
+    candislike: {
+      $not: {
+        $in : [ gmail, "$dislikes.gmail" ],
+      }
+    }
+  }
+}
+
 
 PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
   this.aggregate([
@@ -138,7 +154,7 @@ PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
 PostSchema.statics.sectionEdgeRank = function (opts, cb) {
   var optionalfields = {};
   var optionalfilters = {};
-  if(opts.ip) Object.assign(optionalfields, likecond(opts.ip));
+  if(opts.ip) Object.assign(optionalfields, gmaillike(opts.gmail));
   if(opts.id) optionalfilters._id = mongoose.Types.ObjectId(opts.id);
 
   this.aggregate([

@@ -23,7 +23,7 @@
                 <div class="d-flex">
                     <button class="btn btn-success col-6 col-md-auto" type="button" data-toggle="modal" data-target="#newpostmodal">New Post +</button>
                     {% if not user %}
-                    <button onclick="location.href='/auth/google'" type="button" class="btn btn-success ml-2 col-6 col-md-auto">Sign In</button>
+                    <button onclick="location.href='/auth/google'" type="button" class="btn btn-success ml-2 col-6 col-md-auto">Sign In<i class="fab fa-google ml-2"></i></button>
                     {% else %}
                     <button type="button" class="btn btn-success dropdown-toggle ml-2 col-6 col-md-auto" data-toggle="dropdown" aria-haspopup="true">Account</button>
                     <div class="dropdown-menu dropdown-menu-right dropdown-menu-account bg-dark text-light p-2 mr-1">
