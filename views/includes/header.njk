@@ -26,9 +26,9 @@
                     <button onclick="location.href='/auth/google'" type="button" class="btn btn-success ml-2 col-6 col-md-auto">Sign In<i class="fab fa-google ml-2"></i></button>
                     {% else %}
                     <button type="button" class="btn btn-success dropdown-toggle ml-2 col-6 col-md-auto" data-toggle="dropdown" aria-haspopup="true">Account</button>
-                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-account bg-dark text-light p-2 mr-1">
+                    <div class="dropdown-menu user-dropdown dropdown-menu-right dropdown-menu-account p-2 mr-1">
                       <img class="rounded-circle ml-2" src="{{ user.photos[0].value }}">
-                      <a href="/logout" class="text-light">Sign Out</a>
+                      <a href="/logout">Sign Out</a>
                     </div>
                     {% endif %}
                 </div>

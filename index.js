@@ -1,4 +1,4 @@
-require("dotenv").config({path: __dirname + '/googleauth.env'});
+require("dotenv").config({path: __dirname + '/secrets.env'});
 const passport = require('passport');
 const express = require("express");
 const cookieSession = require('cookie-session');

@@ -119,7 +119,7 @@ PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
     { $addFields:
       // Ranking algorithm defined above
       { ranking: rankfield }
-    }, //end $project
+    }, //end $addFields
     { $sort: { ranking: -1, "_id": -1 } },
     { $skip: POST_LIMIT-1 }
     ]
@@ -154,7 +154,7 @@ PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
 PostSchema.statics.sectionEdgeRank = function (opts, cb) {
   var optionalfields = {};
   var optionalfilters = {};
-  if(opts.ip) Object.assign(optionalfields, gmaillike(opts.gmail));
+  if(opts.gmail) Object.assign(optionalfields, gmaillike(opts.gmail));
   if(opts.id) optionalfilters._id = mongoose.Types.ObjectId(opts.id);
 
   this.aggregate([
@@ -169,7 +169,7 @@ PostSchema.statics.sectionEdgeRank = function (opts, cb) {
         ranking: rankfield,
         ...optionalfields,
       }
-    }, //end $project
+    }, //end $addFields
     { $sort: { ranking: -1, "_id": -1 } },
     { $limit: parseInt("20") }
     ],

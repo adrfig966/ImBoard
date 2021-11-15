@@ -1,6 +1,13 @@
 const express = require("express");
 const Post = require("../schemas/post");
 const router = express.Router();
+const contentful = require('contentful');
+const { documentToHtmlString } = require('@contentful/rich-text-html-renderer');
+
+const contclient = contentful.createClient({
+  space: process.env.CONT_SPACE,
+  accessToken: process.env.CONT_TOKEN,
+});
 
 router.get("/home", (req, res) => {
   //page property is created to allow highlighting of active page
@@ -46,7 +53,7 @@ router.get(
       id: req.params.id,
       ip: req.parsedIP,
     }
-    
+
     if(req.user)options.gmail = req.user._json.email;
 
     Post.sectionEdgeRank(options, (err, posts) => {
@@ -73,4 +80,23 @@ router.get(
     });
   }
 );
+
+/**************
+Description: Renders main layout (main.njk) with page content from Contentful for given PID (page ID)
+Method: GET
+Path Params: Page ID (string)
+Response: An HTML page populated by Contentful
+***************/
+router.get("/pages/:pid", (req, res) => {
+  contclient
+  .getEntry(req.params.pid, {
+    content_type: 'basicPage',
+  })
+  .then(function (entry) {
+    entry.fields.pageContent = documentToHtmlString(entry.fields.pageContent)
+    res.status(200).render("page-basic", {page: "home", entry: entry});
+  }).catch(function (err) {
+    res.status(400).send("Content not found");
+  });
+});
 module.exports = router;

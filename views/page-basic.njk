@@ -1,0 +1,8 @@
+{% extends "layouts/main.njk" %}
+{% block content %}
+<div class="container text-center">
+    <div class="post py-3 my-2">
+        {{ entry.fields.pageContent | safe }}
+    </div>
+</div>
+{% endblock %}
