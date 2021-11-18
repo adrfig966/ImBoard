@@ -1,6 +1,6 @@
 {% extends "layouts/main.njk" %}
 {% block content %}
-<div class="container posts-container mt-2">
+<div class="container posts-container mt-2 px-2">
     {% set isloop = true %}
     {% for post in postarr %}
         {% include "./includes/post-card.njk" %}

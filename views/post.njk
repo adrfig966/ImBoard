@@ -1,16 +1,16 @@
 {% extends "layouts/main.njk" %}
 {% block content %}
-<div class="container posts-container mt-2">
+<div class="container posts-container mt-2 px-2">
     {% include "./includes/post-card.njk" %}
     <div class="comment-titles">
         <h3>Comments</h3>
     </div>
     {% for comment in post.comments %}
-        <div class="comments-container text-white">
+        <div class="comments-container">
             <div class="comment py-4 rounded-top row {{ " focuscomment" if comment._id == comid}}">
                 <div class="col-12 comment-content">{{comment.content}}</div>
                 <div class="col-12">
-                    <small>-{{comment.user}}</small>
+                    <small>from {{comment.user}}</small>
                 </div>
             </div>
             <div class="comment-footer mb-2 py-2 rounded-bottom row">

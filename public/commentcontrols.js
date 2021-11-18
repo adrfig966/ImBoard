@@ -68,7 +68,8 @@ function userinput(e) {
 
 //Event handler for comment form button
 //ID and section name are passed from template
-function addcomment(e, postid, section) {
+function addcomment(e, postid, section, user) {
+  console.log('user is', user);
   //Wipe other open forms
   $(".comment-input").remove();
   //Bootstrap container to hold dynamic content
@@ -78,7 +79,7 @@ function addcomment(e, postid, section) {
     .addClass("text-danger")
     .text("0/150");
   var namefeedback = $("<small></small>").text(
-    "Hash will default to your IP"
+    "Hash will default to your IP if not signed in."
   );
 
   /*Note the use of references passed in to event handlers.
@@ -97,13 +98,17 @@ function addcomment(e, postid, section) {
     .attr("placeholder", "Enter secret hash (optional)")
     .attr("maxlength", "25")
     .keyup({ feedbackref: namefeedback }, userinput);
+  if(user){
+    nameinput.val(user);
+    nameinput.prop('disabled', true);
+  }
   //Buttons
   var submitbtn = $("<input type='submit'></input>")
     .val("Submit")
-    .addClass("btn btn-outline-light btn-block");
+    .addClass("btn btn-light btn-block");
   var closebtn = $("<input type='submit'></input>")
     .val("Close")
-    .addClass("btn btn-outline-light btn-block")
+    .addClass("btn btn-light btn-block")
     .click(formclose);
   //Structure new elements
   formrow.append(

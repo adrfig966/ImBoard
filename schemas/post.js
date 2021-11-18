@@ -9,6 +9,10 @@ var CommentSchema = mongoose.Schema({
     type: String,
     default: "Anonymous",
   },
+  userref: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   content: { type: String, required: true, minlength: 10, maxlength: 150 },
 });
 
@@ -28,7 +32,6 @@ var PostSchema = mongoose.Schema({
     type: String,
     default: "Anonymous",
   },
-  /*Used for registered posts*/
   userref: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -61,9 +64,9 @@ const rankfield = {
   $divide: [
     {
       $add: [
-        { $multiply: ["$commentcount", 0.2] },
-        { $multiply: ["$likescount", 0.1] },
-        { $multiply: ["$views", 0.6] },
+        { $multiply: ["$commentcount", 0.5] },
+        { $multiply: ["$likescount", 0.3] },
+        { $multiply: ["$views", 0.2] },
       ],
     },
     {

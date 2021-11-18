@@ -20,10 +20,9 @@ footer {
     background-color: #a8dadc;
 }
 .comment{
-    background-color: #457b9d;
+    background-color: #a8dadc;
 }
-.comment-content a{
-    color: white;
+.comment-content a {
     font-weight: 600;
     font-style: italic;
 }
@@ -31,7 +30,7 @@ footer {
     background-color: #1d3557
 }
 .focuscomment{
-    background-color: #93718a;
+    background-color: #82AFB0;
 }
 .image-half {
     background-color: #A8DADC;

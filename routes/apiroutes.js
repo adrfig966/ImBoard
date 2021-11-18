@@ -78,47 +78,35 @@ Body: User (string), Content (string), Section (string), File (object, file meta
 Response: New post if successful (200), else error object (400)
 ***************/
 router.post("/newpost", postlimiter, uploadmw, (req, res) => {
-  var postdata = {
+  var newpost = new Post({
     content: req.body.content,
     section: req.body.section,
-  };
+  });
   //Check file upload errors
   if (!req.file && req.body.expectfile == "true") {
     console.log("Error with upload");
   }
-  var newpost = new Post(postdata);
   //Using FormData objects on front end prevents middleware fix from working, this is a quickfix for empty values.
   if (req.file) {
     newpost.imagepath = req.file.path;
     newpost.imagename = req.file.filename;
   }
   newpost.user = req.hashedIP;
-  var userquery = {}
-  if(req.user){
-    userquery.gmail = req.user._json.email;
-    console.log(req.user._json.email);
+  if(req.user.mongo_id){
+    newpost.userref = mongoose.Types.ObjectId(req.user.mongo_id);
+    newpost.user = req.user.mongo_id;
   }else if(req.body.user) {
     if(req.body.user.length > 25){
       console.log("Error max length exceeded");
     }
     newpost.user = hash.MD5(req.body.user);
   }
-  User.findOne(userquery, (error, user) => {
-    if(error){
-      return res.status(400).send(error);
-    }
-    if(!user){
-      console.log("User not found");
-    }else {
-      newpost.userref = mongoose.Types.ObjectId(user._id);;
-    }
-    //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
-    Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
-      if (checkerr) return res.status(400).send(checkerr);
-      newpost.save((saverr, doc) => {
-        if (saverr) return res.status(400).send(saverr);
-        res.status(200).send(doc);
-      });
+  //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
+  Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
+    if (checkerr) return res.status(400).send(checkerr);
+    newpost.save((saverr, doc) => {
+      if (saverr) return res.status(400).send(saverr);
+      res.status(200).send(doc);
     });
   });
 });
@@ -130,18 +118,24 @@ Body: ID (string), User (string), Content (string)
 Response: Updated post if successful (200), else error object (400)
 ***************/
 router.post("/addcomment", comlimiter, (req, res) => {
-  var comuser = req.hashedIP;
-  if(req.body.user) {
+  var newcom = {
+    user: req.hashedIP,
+    content: req.body.content
+  }
+  if(req.user.mongo_id){
+    newcom.userref = mongoose.Types.ObjectId(req.user.mongo_id);
+    newcom.user = req.user.mongo_id;
+  }else if(req.body.user) {
     if(req.body.user.length > 25){
       console.log("Error max length exceeded");
     }
-    comuser = hash.MD5(req.body.user);
+    newcom.user = hash.MD5(req.body.user);
   }
   Post.findOneAndUpdate(
     { _id: req.body.id },
     {
       $push: {
-        comments: { user: comuser, content: req.body.content },
+        comments: newcom,
       },
       $inc: { commentcount: 1 },
       $set: {

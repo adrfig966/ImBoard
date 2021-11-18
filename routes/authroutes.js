@@ -19,6 +19,7 @@ passport.use(new GoogleStrategy({
   function(accessToken, refreshToken, profile, done) {
     User.findOneAndUpdate({gmail: profile._json.email}, {}, {upsert: true}, (err, doc) => {
       if(err) return done(err);
+      profile.mongo_id = doc._id;
       return done(null, profile);
     });
   }
