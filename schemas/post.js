@@ -2,12 +2,14 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 
-const POST_LIMIT = 3; // Starts from 0 :)
+const POST_LIMIT = 4;
+const USER_REGEX = /^[A-Za-z0-9_]{0,25}$/; // Not used anymore?
 
 var CommentSchema = mongoose.Schema({
   user: {
     type: String,
     default: "Anonymous",
+    //match: USER_REGEX,
   },
   userref: {
     type: mongoose.Schema.Types.ObjectId,
@@ -31,6 +33,7 @@ var PostSchema = mongoose.Schema({
   user: {
     type: String,
     default: "Anonymous",
+    //match: USER_REGEX,
   },
   userref: {
     type: mongoose.Schema.Types.ObjectId,
@@ -56,7 +59,6 @@ var PostSchema = mongoose.Schema({
   likescount: { type: Number, default: 0 },
   dislikescount  : { type: Number, default: 0 },
   lastcomment: { type: Date, default: Date.now },
-  testfield: { type: String, default: "", trim: true, maxlength: 15 },
 }, { timestamps: true });
 
 /* Rank algorithm score computed from existing post fields */
@@ -79,6 +81,8 @@ const rankfield = {
   ],
 };
 
+
+//Deprecated? Like condition based on IP, this can be used for an anonymous board.
 const iplike = function(ip) {
   if(!ip) return {};
 
@@ -96,6 +100,7 @@ const iplike = function(ip) {
   }
 }
 
+//Lke condition based on users gmail, requires login.
 const gmaillike = function(gmail) {
   if(!gmail) return {};
 
@@ -113,16 +118,15 @@ const gmaillike = function(gmail) {
   }
 }
 
-
+//Deletes posts according to post limit, posts with lowest ranking are deleted if needed.
 PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
   this.aggregate([
     { $match:
       { section: section || 'testing' }
-    }, //end $match
+    },
     { $addFields:
-      // Ranking algorithm defined above
       { ranking: rankfield }
-    }, //end $addFields
+    },
     { $sort: { ranking: -1, "_id": -1 } },
     { $skip: POST_LIMIT-1 }
     ]
@@ -154,6 +158,9 @@ PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
   return;
 };
 
+
+//Grabs all posts for a given section sorted by ranking algorithm, allows filtering by specific post.
+//Can also be passed a users gmail to check if they are able to like a post, thus giving you a list of posts that can be liked for a given user.
 PostSchema.statics.sectionEdgeRank = function (opts, cb) {
   var optionalfields = {};
   var optionalfilters = {};
@@ -166,13 +173,13 @@ PostSchema.statics.sectionEdgeRank = function (opts, cb) {
         section: opts.section || 'testing',
         ...optionalfilters,
       }
-    }, //end $match
+    },
     { $addFields:
       {
         ranking: rankfield,
         ...optionalfields,
       }
-    }, //end $addFields
+    },
     { $sort: { ranking: -1, "_id": -1 } },
     { $limit: parseInt("20") }
     ],
@@ -182,7 +189,7 @@ PostSchema.statics.sectionEdgeRank = function (opts, cb) {
       }
       cb(null, results);
     }
-  ); //end Items.aggregate
+  );
   return;
 };
 

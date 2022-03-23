@@ -60,7 +60,7 @@ router.get('/logout', (req, res) => {
     res.redirect('/');
 })
 
-/* Middleware to attach the user object to every response */
+/* Middleware to attach the user object from Google auth to every response, this is used on the front end to display certain sections */
 router.use((req, res, next) => {
   if(req.user){
     res.locals.user = req.user;

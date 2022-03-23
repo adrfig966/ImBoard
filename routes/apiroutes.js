@@ -1,6 +1,7 @@
 const multer = require("multer");
 const express = require("express");
 const mongoose = require("mongoose");
+const fs = require("fs");
 const ratelimit = require("express-rate-limit");
 const hash = require('object-hash');
 const Post = require("../schemas/post");
@@ -92,20 +93,32 @@ router.post("/newpost", postlimiter, uploadmw, (req, res) => {
     newpost.imagename = req.file.filename;
   }
   newpost.user = req.hashedIP;
-  if(req.user.mongo_id){
+  if(req.user && req.user.mongo_id){
+    //If the user is registered then store a reference to their DB entry and store the ID as the user key as well.
     newpost.userref = mongoose.Types.ObjectId(req.user.mongo_id);
     newpost.user = req.user.mongo_id;
   }else if(req.body.user) {
     if(req.body.user.length > 25){
-      console.log("Error max length exceeded");
+      //Undo file upload on error, this prevents a server spam exploit where a user can upload files with no reference to them in the database.
+      //This results in these images not being picked up by the ranked insertion function due to not having an associated post.
+      if(req.file) fs.unlinkSync(req.file.path);
+      console.log("Error max name length exceeded");
+      return res.status(400);
     }
     newpost.user = hash.MD5(req.body.user);
   }
   //Check whether posts for a gievn section have reached limit then delete the appropriate (lowest) post according to ranking algorithm
   Post.checkInsertEdgeRank(req.body.section || "testing", (checkerr, result) => {
-    if (checkerr) return res.status(400).send(checkerr);
+    if (checkerr) {
+      if(req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).send(checkerr);
+    }
     newpost.save((saverr, doc) => {
-      if (saverr) return res.status(400).send(saverr);
+      if (saverr) {
+        //See above comment for username length
+        if(req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).send(saverr);
+      }
       res.status(200).send(doc);
     });
   });
@@ -122,12 +135,13 @@ router.post("/addcomment", comlimiter, (req, res) => {
     user: req.hashedIP,
     content: req.body.content
   }
-  if(req.user.mongo_id){
+  if(req.user && req.user.mongo_id){
     newcom.userref = mongoose.Types.ObjectId(req.user.mongo_id);
     newcom.user = req.user.mongo_id;
   }else if(req.body.user) {
     if(req.body.user.length > 25){
-      console.log("Error max length exceeded");
+      console.log("Error max name length exceeded");
+      return res.status(400);
     }
     newcom.user = hash.MD5(req.body.user);
   }
@@ -159,7 +173,6 @@ Response: Updated post if successful (200), else error object (400)
 ***************/
 router.post("/addvote/:type", (req, res) => {
   if(!req.user) return res.sendStatus(401);
-  console.log("Value of req.user", req.user);
   var gmail = req.user._json.email;
   var ip = req.parsedIP;
 
@@ -290,10 +303,10 @@ router.get("/getpost", (req, res) => {
 });
 
 /**************
-Description: Gets edgerank score for a given section
+Description: Gets posts with edgerank score for a given section. Can be passed an ID to grab a specific post.
 Method: GET
-Query Params: Section (string)
-Response: Single post for given ID as JSON if success (200), else error object (400)
+Query Params: Section (string), ID (string, optional)
+Response: List of posts for a section organized by ranking algorithm if success (200), else error object (400)
 ***************/
 router.get("/edgerank", (req, res) => {
   var options = {
@@ -310,6 +323,7 @@ router.get("/edgerank", (req, res) => {
 
 
 /* Testing purposes */
+/*
 router.get("/edgerankcheck", (req, res) => {
   Post.checkInsertEdgeRank(req.query.section || "testing", (rankerr, result) => {
     if (rankerr) return res.status(400).send(rankerr);
@@ -317,5 +331,6 @@ router.get("/edgerankcheck", (req, res) => {
     res.status(200).send(result);
   });
 });
+*/
 
 module.exports = router;

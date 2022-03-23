@@ -31,10 +31,12 @@ router.get("/:section([0-9a-zA-Z]{2,30})/posts", (req, res) => {
   //Grab post using ranking algorithm, posts are automatically sorted by best
   Post.sectionEdgeRank(options, (rankerr, postarr) => {
     if (rankerr) return res.status(400).send(rankerr);
+    //Pass in a variable to indicate whether any posts were found
+    isempty = postarr.length == 0;
     //Section is propagated into the template to allow highlighting of active page
     res
       .status(200)
-      .render("posts", { postarr: postarr, section: req.params.section });
+      .render("posts", { postarr: postarr, section: req.params.section, isempty });
   });
 });
 
@@ -57,7 +59,8 @@ router.get(
     if(req.user)options.gmail = req.user._json.email;
 
     Post.sectionEdgeRank(options, (err, posts) => {
-      if (err) return res.status(400).send(err);
+      //TODO: Add 404 redirect for missing ID :(
+      if (err || !posts || posts.length == 0) return res.status(400).send(err);
 
       // We don't have to wait for the view incremement to finish to send the post back to the user.
       Post.findOneAndUpdate(

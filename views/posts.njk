@@ -2,6 +2,11 @@
 {% block content %}
 <div class="container posts-container mt-2 px-2">
     {% set isloop = true %}
+    {% if isempty %}
+    <div class="my-4 text-center">
+      <h4>Sorry, no one has posted to this topic yet.</h4>
+    </div>
+    {% endif %}
     {% for post in postarr %}
         {% include "./includes/post-card.njk" %}
     {% endfor %}
