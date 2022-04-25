@@ -57,14 +57,30 @@ function checkFileExt(filename){
   return false;
 
 }
+//Resets upload
+$('.clear-button').click(e => {
+  //Reset all feedback elements
+  $('.image-preview').css('background-image', 'none');
+  $('.preview-container').css('display', 'none');
+  $(".fsize-bar").width('0');
+  $(".progress-bar-text").text('File size');
+  //Clear upload
+  $("#pictureupload").val(null);
+});
 //Image file validation feedback
 $("#pictureupload").change(e => {
   if(!e.target.files[0]){return;}
   var file = e.target.files[0];
+  $('.preview-container').css('display', 'block');
+  $('.image-preview').css('background-image', `url(${URL.createObjectURL(file)})`);
   var percentused = file.size / 3145728 * 100;
-  var sizebar = $(".fsize-bar");
+  percentused = Math.min(100, percentused).toFixed(2);
+  var sizebar = $(".fsize-bar")
+  var barlabel = $(".progress-bar-text");
   sizebar.width(percentused + "%");
-  if(!checkFileExt(file.name)){
+  barlabel.text(`${percentused}%`);
+  if(percentused >= 100) barlabel.text(`Size limit exceeded.`);
+  if(!checkFileExt(file.name) || percentused >= 100){
     sizebar.removeClass("bg-success");
     sizebar.addClass("bg-danger");
   }else{

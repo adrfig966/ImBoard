@@ -17,12 +17,19 @@
                     <label for="postcontent" class="text-info">Post body</label>
                     <textarea class="form-control" name="content" id="postcontent" required></textarea>
                     <small class="text-danger" id="postlength">0/250</small><br>
-                    <label for="pictureupload">Select image (3mb max)</label><br>
-                    <input name="postpicture" type="file" class="" id="pictureupload" accept=".jpg,.png,.gif,.bmp"><br>
-                    <div class="progress mt-4">
-                        <div class="progress-bar bg-success fsize-bar" role="progressbar" style="width: 0%; color: black">File size</div>
+                    <label class="text-info mb-0">Image Upload</label><br>
+                    <small>Optional - 3mb max</small>
+                    <div class="preview-container">
+                      <div class="image-preview"></div>
+                      <div class="clear-button"><img src="/x-symbol.svg"></div>
                     </div>
-                    <input type="submit" class="btn btn-primary mt-2" value="Create">
+                    <div class="progress-bar-container mt-1 bg-light p-1">
+                      <div class="progress-bar bg-success fsize-bar" role="progressbar" style="width: 0%; color: black"></div>
+                      <div class="progress-bar-text">File size</div>
+                    </div>
+                    <label class="upload-button btn btn-success mb-0 mt-3" for="pictureupload">Choose Image</label>
+                    <input name="postpicture" type="file" class="" id="pictureupload" accept=".jpg,.png,.gif,.bmp">
+                    <input type="submit" class="btn btn-primary mt-3" value="Create Post">
                 </form>
             </div>
             <div class="modal-footer">

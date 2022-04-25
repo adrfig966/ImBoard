@@ -17,7 +17,7 @@ passport.use(new GoogleStrategy({
     callbackURL: process.env.CALLBACK_URL
   },
   function(accessToken, refreshToken, profile, done) {
-    User.findOneAndUpdate({gmail: profile._json.email}, {}, {upsert: true}, (err, doc) => {
+    User.findOneAndUpdate({gmail: profile._json.email}, {}, {upsert: true, new: true}, (err, doc) => {
       if(err) return done(err);
       profile.mongo_id = doc._id;
       return done(null, profile);

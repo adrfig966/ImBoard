@@ -31,7 +31,7 @@ app.use(cookieSession({
 
 //Mongoose connection set up
 mongoose.connect(
-  require("./connectionstr"),
+  process.env.MONGO_STR,
   { useNewUrlParser: true },
   (err) => {
     if (err) console.log(err);
