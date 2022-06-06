@@ -45,6 +45,22 @@ footer {
     background-size: cover;
     background-position: center;
     min-height: 200px;
+    position: relative;
+}
+.post-image-bg .hover-container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color : white;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: all 0.2s ease-in;
+}
+.post-image-bg:hover .hover-container {
+  opacity: 1;
 }
 @media (min-width: 768px) {
     .post {

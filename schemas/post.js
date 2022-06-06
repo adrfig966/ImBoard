@@ -62,25 +62,26 @@ var PostSchema = mongoose.Schema({
 }, { timestamps: true });
 
 /* Rank algorithm score computed from existing post fields */
-const rankfield = {
-  $divide: [
-    {
-      $add: [
-        { $multiply: ["$commentcount", 0.5] },
-        { $multiply: ["$likescount", 0.3] },
-        { $multiply: ["$views", 0.2] },
-      ],
-    },
-    {
-      $add: [
-        1,
-        { $multiply: [{ $subtract: [new Date(), "$lastcomment"] }, 0.2] },
-        { $multiply: [{ $subtract: [new Date(), "$createdAt"] }, 0.8] },
-      ],
-    },
-  ],
-};
-
+const rankfield = function(){
+  return {
+    $divide: [
+      {
+        $add: [
+          { $multiply: ["$commentcount", 0.5] },
+          { $multiply: ["$likescount", 0.3] },
+          { $multiply: ["$views", 0.2] },
+        ],
+      },
+      {
+        $add: [
+          1,
+          { $multiply: [{ $subtract: [new Date(), "$lastcomment"] }, 0.2] },
+          { $multiply: [{ $subtract: [new Date(), "$createdAt"] }, 0.8] },
+        ],
+      },
+    ],
+  };
+}
 
 //Deprecated? Like condition based on IP, this can be used for an anonymous board.
 const iplike = function(ip) {
@@ -125,7 +126,7 @@ PostSchema.statics.checkInsertEdgeRank = function (section, cb) {
       { section: section || 'testing' }
     },
     { $addFields:
-      { ranking: rankfield }
+      { ranking: rankfield() }
     },
     { $sort: { ranking: -1, "_id": -1 } },
     { $skip: POST_LIMIT-1 }
@@ -176,7 +177,7 @@ PostSchema.statics.sectionEdgeRank = function (opts, cb) {
     },
     { $addFields:
       {
-        ranking: rankfield,
+        ranking: rankfield(),
         ...optionalfields,
       }
     },
